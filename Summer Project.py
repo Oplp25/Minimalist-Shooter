@@ -6,6 +6,12 @@ pygame.init()
 win=pygame.display.set_mode((640,640))
 pygame.display.set_caption('Shooter')
 font = pygame.font.SysFont(None, 100)
+newFont =  pygame.font.SysFont(None, 50)
+titleText=font.render('Shooter',True,(255,0,0),(0,0,0))
+nextLevelText=newFont.render('Next Level',True,(255,0,0),(0,200,0))
+upgradeText=newFont.render('Upgrade',True,(255,0,0),(0,200,0))
+saveText=newFont.render('Save',True,(255,0,0),(0,200,0))
+loadText=newFont.render('Load',True,(255,0,0),(0,200,0))
 listOfBarriers=[pygame.Rect(0,0,640,40),pygame.Rect(0,0,40,640),pygame.Rect(600,0,40,640),pygame.Rect(0,600,640,40),pygame.Rect(120,120,80,40),pygame.Rect(440,120,80,40),pygame.Rect(280,120,80,80),pygame.Rect(160,160,40,40),pygame.Rect(440,160,40,40),pygame.Rect(80,200,40,80),pygame.Rect(520,200,40,80),pygame.Rect(280,280,80,80),pygame.Rect(80,360,40,80),pygame.Rect(520,360,40,80),pygame.Rect(160,440,40,40),pygame.Rect(440,440,40,40),pygame.Rect(440,480,80,40),pygame.Rect(120,480,80,40),pygame.Rect(280,440,80,80)]
 bullets=[]
 startButtonHitbox=pygame.Rect(40,160,240,80)
@@ -184,38 +190,46 @@ def upgrade():
     pass
 def save():
     win.fill((0,0,0))
-    newFont =  pygame.font.SysFont(None, 50)
-    text=newFont.render('Name Your Save',True,(255,0,0))
+    text=newFont.render('Name Your Save',True,(255,0,0),(0,0,0))
     win.blit(text,(175,175))
+    pygame.draw.rect(win,(0,200,0),(190,375,240,80))
+    win.blit(saveText,(270,400))
     pygame.display.update()
     saving=True
     saveName=''
     isCapital=0
     capsLockOn=0
     while saving:
-        for event in pygame.event.get(pygame.KEYDOWN):
-            y=1
-            if event.key==pygame.K_ESCAPE:
-                saving=False
-                break
-            if isCapital==1:
-                saveName=saveName+str(pygame.key.name(event.key).upper())
-                y=0
-            isCapital=0
-            if event.key==pygame.K_LSHIFT or event.key==pygame.K_RSHIFT or event.key==pygame.K_CAPSLOCK:
-                if capsLockOn==0:
-                    isCapital=1
-                if event.key==pygame.K_CAPSLOCK:
+        for event in pygame.event.get():
+            if event.type==pygame.KEYDOWN:
+                y=1
+                if event.key==pygame.K_RETURN:
+                    saving=False
+                    break
+                if isCapital==1:
+                    saveName=saveName+str(pygame.key.name(event.key).upper())
+                    y=0
+                isCapital=0
+                if event.key==pygame.K_LSHIFT or event.key==pygame.K_RSHIFT or event.key==pygame.K_CAPSLOCK:
                     if capsLockOn==0:
-                        capsLockOn=1
-                    else:
-                        capsLockOn=0
-                y=0
-            if y==1:
-                saveName=saveName+str(pygame.key.name(event.key))
-        time.sleep(1)
-        print(saveName)
-
+                        isCapital=1
+                    if event.key==pygame.K_CAPSLOCK:
+                        if capsLockOn==0:
+                            capsLockOn=1
+                        else:
+                            capsLockOn=0
+                    y=0
+                if y==1:
+                    saveName=saveName+str(pygame.key.name(event.key))
+                    
+            elif event.type==pygame.MOUSEBUTTONDOWN:
+                if pygame.Rect(190,375,240,80).collidepoint(pygame.mouse.get_pos()):
+                    saving=False
+                    break
+        name=newFont.render(saveName,True,(255,0,0),(0,0,0))
+        win.blit(name,(275-len(saveName)*5,275))
+        pygame.display.update()
+        
     f=open("C:/Users/jakob/OneDrive/Documents/A-Levels/Computer Science/Misc. Code/Summer Project/Saves/"+saveName+".txt",'w')
     f.write(str(level)+str(player.xp))
     f.close()
@@ -227,6 +241,11 @@ def menu():
     win.fill((0,0,0))
     for i in buttonList:
         pygame.draw.rect(win,(0,200,0),i)
+    win.blit(titleText,(200,10))
+    win.blit(nextLevelText,(70,185))
+    win.blit(upgradeText,(90,305))
+    win.blit(saveText,(115,425))
+    win.blit(loadText,(115,545))
     pygame.display.update()
     runMenu=True
     while runMenu:
