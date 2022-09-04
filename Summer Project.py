@@ -253,13 +253,19 @@ def load():
     win.blit(loadTextNew,(20,20))
     for index,i in enumerate(buttons):
         pygame.draw.rect(win,(0,200,0),i)
+        saveInUse=saves[index].split('/')[1].split('.')[0]
         if len(saves)<=5:
-            saveInUse=saves[index].split('/')[1].split('.')[0]
             savesText=halfFont.render(saveInUse,True,(255,0,0))
             if len(saveInUse)<=11:
                    win.blit(savesText,(200,(500/len(saves))*index+135))
             else:
                 win.blit(savesText,(80,(500/len(saves))*index+135))
+        else:
+            savesText=newFont.render(saveInUse,True,(255,0,0))
+            if index<=4:
+                win.blit(savesText,(80,(108)*index+135))
+            else:
+                win.blit(savesText,(400,(108)*(index-5)+135))
     pygame.display.update()
     loading=True
     while loading:
