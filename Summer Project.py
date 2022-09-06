@@ -24,11 +24,11 @@ buttonList=[startButtonHitbox,upgradeButtonHitbox,saveButtonHitbox,loadButtonHit
 
 #class for all the bullets that the soldiers fire and that inflicts damage
 class bullet(object):
-    def __init__(self,direction,x,y):
+    def __init__(self,direction,x,y,damage):
         self.x=x
         self.y=y
         self.vel=direction
-    
+        self.damage=damage
     def move(self):
         self.y=self.y-(10*self.vel)
         
@@ -39,7 +39,7 @@ class bullet(object):
                 bullets.remove(self)
         for i in soldiers:
             if self.hitbox.colliderect(i.hitbox):
-                i.hp-=1
+                i.hp-=self.damage
                 if i.hp<=0:
                     soldiers.remove(i)
                 bullets.remove(self)
@@ -53,6 +53,9 @@ class soldier(object):
         self.x=x
         self.y=y
         self.hp=3
+        self.maxHp=3
+        self.damage=1
+        self.speed=5
         if self.team=='red':
             self.xp=0
         self.bulletCountdown=30
@@ -79,10 +82,10 @@ class soldier(object):
                     if i!=player and i!=self and i.y<self.y and self.x<i.x<self.x+40:
                          x=False
                 if x:
-                    bullets.append(bullet(-1,self.x+16,self.y+24))
+                    bullets.append(bullet(-1,self.x+16,self.y+24,self.damage))
                     self.bulletCountdown=0
             else:
-                bullets.append(bullet(1,self.x+16,self.y))
+                bullets.append(bullet(1,self.x+16,self.y,self.damage))
                 self.bulletCountdown=0
     
     #move function for the AI
@@ -106,8 +109,8 @@ class soldier(object):
         pygame.draw.rect(win,self.colour,(self.x,self.y+8,8,8))
         pygame.draw.rect(win,self.colour,(self.x+32,self.y+8,8,8))
         pygame.draw.rect(win,(100,255,100),(self.x+8,self.y-16,self.hp*8,8))
-        if self.hp<3:
-            pygame.draw.rect(win,(255,100,100),(self.x+8+self.hp*8,self.y-16,(3-self.hp)*8,8))
+        if self.hp<self.maxHp:
+            pygame.draw.rect(win,(255,100,100),(self.x+8+self.hp*8,self.y-16,(self.maxHp-self.hp)*8,8))
 
 #Function that draws the level based on the pygame.Rect objects in the list listOfBarriers
 def drawLevel():
@@ -139,7 +142,7 @@ def beginLevel(level):
     for i in range(level):
         soldiers.append(soldier('blue',(600/(level+1))*(i+1),80))
     player.bulletCountdown=30
-    player.hp=3
+    player.hp=player.maxHp
     player.x=300
     player.y=560
 
@@ -190,7 +193,46 @@ def checkMove(soldier,direction):
         return True
 
 def upgrade():
-    pass
+    win.fill((0,0,0))
+    buttList=[]
+    for i in range(3):
+        buttList.append(pygame.Rect(70,120*(i+1)+i*40,500,120))
+        pygame.draw.rect(win,(0,200,0),(70,120*(i+1)+i*40,500,120))
+    upgradingText=font.render('Upgrades',True,(255,0,0),(0,0,0))
+    win.blit(upgradingText,(180,20))
+    xpText=newFont.render('xp: '+str(player.xp),True,(255,0,0),(0,0,0))
+    win.blit(xpText,(300,580))
+    damageText= halfFont.render('Damage: '+str(player.damage),True,(255,0,0),(0,200,0))
+    healthText= halfFont.render('Health: '+str(player.maxHp),True,(255,0,0),(0,200,0))
+    speedText= halfFont.render('Speed: '+str(player.speed),True,(255,0,0),(0,200,0))
+    win.blit(damageText,(200,160))
+    win.blit(healthText,(200,320))
+    win.blit(speedText,(200,480))
+    pygame.display.update()
+    upgrading=True
+    while upgrading:
+        for event in pygame.event.get(pygame.MOUSEBUTTONDOWN):
+            for index,i in enumerate(buttList):
+                if i.collidepoint(pygame.mouse.get_pos()):
+                    if index==0:
+                        if player.damage<=2 and player.xp>=3:
+                            player.damage+=1
+                            player.xp-=3
+                            upgrade()
+                    elif index==1:
+                        if player.maxHp<=4 and player.xp>=3:
+                            player.maxHp+=1
+                            player.xp-=3
+                            upgrade()
+                    elif index==2:
+                        if player.speed<=8 and player.xp>=3:
+                            player.speed+=1
+                            player.xp-=3
+                            upgrade()
+        keys=pygame.key.get_pressed()
+        if keys[pygame.K_ESCAPE]:
+            upgrading=False
+    print('exit')
 def save(trueLevel):
     win.fill((0,0,0))
     text=newFont.render('Name Your Save',True,(255,0,0),(0,0,0))
@@ -269,29 +311,34 @@ def load():
     pygame.display.update()
     loading=True
     while loading:
-        for event in pygame.event.get():
-            if event.type==pygame.MOUSEBUTTONDOWN:
-                for index,i in enumerate(buttons):
-                    if i.collidepoint(pygame.mouse.get_pos()):
-                        f=open(saves[index],'r')
-                        line=f.readline()
-                        f.close()
-                        attributeList=line.split(',')
-                        level=attributeList[0]
-                        player.xp=attributeList[1]
-                        loading=False
-                        break
+        for event in pygame.event.get(pygame.MOUSEBUTTONDOWN):
+            for index,i in enumerate(buttons):
+                if i.collidepoint(pygame.mouse.get_pos()):
+                    f=open(saves[index],'r')
+                    line=f.readline()
+                    f.close()
+                    attributeList=line.split(',')
+                    level=attributeList[0]
+                    player.xp=int(attributeList[1])
+                    loading=False
+                    break
     return level
 def menu(trueLevel):
-    win.fill((0,0,0))
-    for i in buttonList:
-        pygame.draw.rect(win,(0,200,0),i)
-    win.blit(titleText,(200,10))
-    win.blit(nextLevelText,(70,185))
-    win.blit(upgradeText,(90,305))
-    win.blit(saveText,(115,425))
-    win.blit(loadText,(115,545))
-    pygame.display.update()
+    def menuDraw():
+        win.fill((0,0,0))
+        for i in buttonList:
+            pygame.draw.rect(win,(0,200,0),i)
+        win.blit(titleText,(200,10))
+        win.blit(nextLevelText,(70,185))
+        win.blit(upgradeText,(90,305))
+        win.blit(saveText,(115,425))
+        win.blit(loadText,(115,545))
+        levelText=newFont.render('Level: '+str(trueLevel),True,(255,0,0),(0,0,0))
+        xpText=newFont.render('xp: '+str(player.xp),True,(255,0,0),(0,0,0))
+        win.blit(levelText,(500,150))
+        win.blit(xpText,(530,230))
+        pygame.display.update()
+    menuDraw()
     runMenu=True
     while runMenu:
         for event in pygame.event.get():
@@ -303,6 +350,7 @@ def menu(trueLevel):
                             runMenu=False
                         elif i==upgradeButtonHitbox:
                             upgrade()
+                            menuDraw()
                         elif i==saveButtonHitbox:
                             save(trueLevel)
                         elif i==loadButtonHitbox:
@@ -355,13 +403,13 @@ while run:
     #Movement
     keys=pygame.key.get_pressed()
     if keys[pygame.K_d] and checkMove(player,'right'):
-        player.x+=5
+        player.x+=player.speed
     elif keys[pygame.K_a] and checkMove(player,'left'):
-        player.x-=5
+        player.x-=player.speed
     if keys[pygame.K_s] and checkMove(player,'down'):
-        player.y+=5
+        player.y+=player.speed
     elif keys[pygame.K_w] and checkMove(player,'up'):
-        player.y-=5
+        player.y-=player.speed
     
     #Checking if the level is completed, the game is won or the player is dead.
     if player.hp==0:
@@ -372,6 +420,7 @@ while run:
             won=True
             run=False
         else:
+            player.xp+=level+player.hp
             level+=1
             #running the menu
             menuRunning=True
