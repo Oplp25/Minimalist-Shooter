@@ -108,9 +108,14 @@ class soldier(object):
         pygame.draw.rect(win,self.colour,(self.x+8,self.y,24,24))
         pygame.draw.rect(win,self.colour,(self.x,self.y+8,8,8))
         pygame.draw.rect(win,self.colour,(self.x+32,self.y+8,8,8))
-        pygame.draw.rect(win,(100,255,100),(self.x+8,self.y-16,self.hp*8,8))
+        if self.maxHp<=3:
+            pygame.draw.rect(win,(100,255,100),(self.x+8,self.y-16,self.hp*8,8))
+        elif self.maxHp==4:
+            pygame.draw.rect(win,(100,255,100),(self.x+4,self.y-16,self.hp*8,8))
+        else:
+            pygame.draw.rect(win,(100,255,100),(self.x,self.y-16,self.hp*8,8))
         if self.hp<self.maxHp:
-            pygame.draw.rect(win,(255,100,100),(self.x+8+self.hp*8,self.y-16,(self.maxHp-self.hp)*8,8))
+            pygame.draw.rect(win,(255,100,100),(self.x+self.hp*8,self.y-16,(self.maxHp-self.hp)*8,8))
 
 #Function that draws the level based on the pygame.Rect objects in the list listOfBarriers
 def drawLevel():
@@ -149,7 +154,7 @@ def beginLevel(level):
 #A function to check if a soldier would move into a wall. Returns True if the soldier does not walk into a wall 
 def checkMove(soldier,direction):
     if direction=='up':
-        y=soldier.y-5
+        y=soldier.y-soldier.speed
         hitbox=pygame.Rect(soldier.x,y,40,24)
         for i in listOfBarriers:
             if hitbox.colliderect(i):
@@ -160,7 +165,7 @@ def checkMove(soldier,direction):
         return True
     
     elif direction=='down':
-        y=soldier.y+5
+        y=soldier.y+soldier.speed
         hitbox=pygame.Rect(soldier.x,y,40,24)
         for i in listOfBarriers:
             if hitbox.colliderect(i):
@@ -171,7 +176,7 @@ def checkMove(soldier,direction):
         return True
     
     elif direction=='left':
-        x=soldier.x-5
+        x=soldier.x-soldier.speed
         hitbox=pygame.Rect(x,soldier.y,40,24)
         for i in listOfBarriers:
             if hitbox.colliderect(i):
@@ -182,7 +187,7 @@ def checkMove(soldier,direction):
         return True
     
     elif direction=='right':
-        x=soldier.x+5
+        x=soldier.x+soldier.speed
         hitbox=pygame.Rect(x,soldier.y,40,24)
         for i in listOfBarriers:
             if hitbox.colliderect(i):
